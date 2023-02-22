@@ -10,8 +10,9 @@ namespace PryanikyTaskV1.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IRepository _repository;
-        private readonly int _productsOnPage = 6;
         private readonly ILogger _logger;
+
+        private readonly int _productsOnPage = 6;
 
         public ProductController(IRepository repository, ILogger<ProductController> logger)
         {
@@ -24,17 +25,18 @@ namespace PryanikyTaskV1.Controllers
         {
             if (page < 1) return BadRequest(new { Error = "Invalid page number" });
 
-            var result = await _repository.GetAllProducts().Skip(_productsOnPage * (page - 1)).Take(_productsOnPage).ToArrayAsync();
+            var result = await _repository.GetAll<Product>().Skip(_productsOnPage * (page - 1))
+                .Take(_productsOnPage).ToArrayAsync();
 
             return Ok(result);
         }
 
         [HttpPost("AddProduct")]
-        public async Task<IActionResult> AddProduct([FromBody]ProductViewModel model)
+        public async Task<IActionResult> AddProduct([FromBody]ProductForm model)
         {
             try
             {
-                await _repository.AddProduct(new Product { Name = model.Name, Price = model.Price });
+                await _repository.AddItemAsync<Product>(new Product { Name = model.Name, Price = model.Price });
                 return Ok();
             } catch (Exception ex) 
             {
@@ -43,21 +45,20 @@ namespace PryanikyTaskV1.Controllers
             }
         }
 
-        [HttpDelete("MakeOrder/{id}")]
-        public async Task<IActionResult> MakeOrder(int id)
+        [HttpDelete("DeleteProduct/{id}")]
+        public async Task<IActionResult> DeleteProduct(int id)
         {
             try
             {
-                await _repository.RemoveProductById(id);
+                await _repository.RemoveByIdAsync<Product>(id);
                 return Ok();
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message, DateTime.Now.ToLongTimeString());
                 return BadRequest(new { Error = ex.Message });
             }
         }
-
-
-
     }
+
 }

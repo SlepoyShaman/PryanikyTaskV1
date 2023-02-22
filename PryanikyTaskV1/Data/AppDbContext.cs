@@ -6,6 +6,7 @@ namespace PryanikyTaskV1.Data
     public class AppDbContext : DbContext
     {
         public DbSet<Product> Products { get; set; }
+        public DbSet<Order> Orders { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -14,7 +15,11 @@ namespace PryanikyTaskV1.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Product>().HasKey(p => p.Id);
+            modelBuilder.Entity<Order>().HasKey(p => p.Id);
+            modelBuilder.Entity<Product>().HasMany(p => p.Orders)
+                .WithOne(o => o.Product)
+                .HasForeignKey(o => o.ProductId)
+                .HasPrincipalKey(p => p.Id);
             modelBuilder.Entity<Product>().HasData(
                 new Product { Id = 1, Name = "Ball", Price = 100 },
                 new Product { Id = 2, Name = "Boots", Price = 500},

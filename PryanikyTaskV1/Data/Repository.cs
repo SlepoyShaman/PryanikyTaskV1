@@ -11,22 +11,25 @@ namespace PryanikyTaskV1.Data
             _context = context;
         }
 
-        public IQueryable<Product> GetAllProducts()
-            => _context.Products.Select(p => p);
+        public IQueryable<TEntity> GetAll<TEntity>() where TEntity : class
+            => _context.Set<TEntity>().Select(p => p);
 
-        public async Task RemoveProductById(int id)
+        public async Task<TEntity> GetByIdAsync<TEntity>(int id) where TEntity : class, IWithId
+            => await _context.Set<TEntity>().FirstOrDefaultAsync(e => e.Id == id);
+
+        public async Task RemoveByIdAsync<TEntity>(int id) where TEntity : class, IWithId
         {
-            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+            var entity = await _context.Set<TEntity>().FirstOrDefaultAsync(p => p.Id == id);
 
-            if (product == null) throw new Exception($"Product with id = {id} does not exist");
+            if (entity == null) throw new Exception($"{typeof(TEntity)} with id = {id} does not exist");
 
-            _context.Products.Remove(product);
+            _context.Set<TEntity>().Remove(entity);
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddProduct(Product product)
+        public async Task AddItemAsync<TEntity>(TEntity entity) where TEntity : class
         {
-            _context.Products.Add(product);
+            _context.Set<TEntity>().Add(entity);
             await _context.SaveChangesAsync();
         }
     }
